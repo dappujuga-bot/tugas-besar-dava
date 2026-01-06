@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tubes Jaringan Komputer - Dava Aryadhinata</title>
+    <meta name="description" content="Portofolio Tugas Mata Kuliah Jaringan Komputer">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           VARIABLES & RESET
+           ========================================= */
+        :root {
+            --primary-dark: #0f0c29;
+            --primary-medium: #302b63;
+            --primary-light: #24243e;
+            --accent: #9b5de5;
+            --accent-glow: #00d4ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text-main: #ffffff;
+            --text-secondary: #e0e0e0;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* =========================================
+           CANVAS BACKGROUND (Network Effect)
+           ========================================= */
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at center, var(--primary-medium), var(--primary-dark));
+        }
+
+        /* =========================================
+           LAYOUT & COMMON STYLES
+           ========================================= */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Card Style - Enhanced */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            /* Initial state for float animation */
+            transform: translateY(0);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shine Effect on Hover */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: skewX(-25deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        /* Floating Animation Class */
+        .floating-anim {
+            animation: floatUpDown 6s ease-in-out infinite;
+        }
+
+        .floating-anim.delay-1 { animation-delay: 0s; }
+        .floating-anim.delay-2 { animation-delay: 2s; }
+        .floating-anim.delay-3 { animation-delay: 4s; }
+
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* 3D Tilt Effect applied via JS */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* Animated Gradient Text */
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(
+                270deg, 
+                #fff, 
+                var(--accent-glow), 
+                var(--accent), 
+                #fff
+            );
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            animation: textShine 4s linear infinite;
+        }
+
+        @keyframes textShine {
+            to { background-position: -300% center; }
+        }
+
+        /* Scroll Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+            transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Icons (SVG) */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* =========================================
+           1. HERO SECTION
+           ========================================= */
+        .hero {
+            text-align: center;
+            padding: 6rem 0 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(155, 93, 229, 0.5);
+            animation: pulseText 3s infinite alternate;
+        }
+
+        @keyframes pulseText {
+            from { text-shadow: 0 0 20px rgba(155, 93, 229, 0.3); }
+            to { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6); }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            animation: fadeIn 2s ease-out;
+        }
+
+        
+        @keyframes fadeIn {
+            from { opacity: 0; letter-spacing: 10px; }
+            to { opacity: 1; letter-spacing: 4px; }
+        }
+
+        /* =========================================
+           2. IDENTITY SECTION
+           ========================================= */
+        .identity-card {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            align-items: center;
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+        }
+
+        .profile-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--accent);
+            transition: var(--transition);
+            box-shadow: 0 0 20px rgba(155, 93, 229, 0.4);
+        }
+
+        /* Double rotating rings for profile */
+        .profile-wrapper::after, .profile-wrapper::before {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 2px dashed transparent;
+        }
+
+        .profile-wrapper::after {
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-top-color: var(--accent-glow);
+            border-bottom-color: var(--accent-glow);
+            animation: spin 15s linear infinite;
+        }
+
+        .profile-wrapper::before {
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            border-left-color: var(--accent);
+            border-right-color: var(--accent);
+            animation: spinReverse 20s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
+
+        .profile-wrapper:hover .profile-img {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px var(--accent);
+        }
+
+        .identity-info h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        .label {
+            color: var(--accent-glow);
+            font-weight: 600;
+        }
+
+        /* =========================================
+           3. COURSE CARD
+           ========================================= */
+        .course-card {
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto 4rem;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid var(--accent-glow); /* Top highlight */
+        }
+
+        .course-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-glow);
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* =========================================
+           4. SERVER CONTENT SECTION
+           ========================================= */
+        .content-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .server-visual {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: perspective(800px) rotateY(5deg); /* Slight 3D feel */
+            transition: 0.5s;
+        }
+        
+        .server-visual:hover {
+            transform: perspective(800px) rotateY(0deg) scale(1.02);
+        }
+
+        .server-visual img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Pulse Overlay for Image */
+        .server-visual::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+        }
+
+        .server-details ul {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .server-details li {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .server-details li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent-glow);
+            font-weight: bold;
+            animation: pulseDot 2s infinite;
+        }
+        
+        @keyframes pulseDot {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.5; }
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background: rgba(155, 93, 229, 0.1);
+            border: 1px solid var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            cursor: default;
+        }
+
+        .tag:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        /* =========================================
+           5. LINK & RESOURCES SECTION
+           ========================================= */
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .link-card {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.2rem;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+
+        .link-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-glow);
+            transform: translateX(10px);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .link-icon-box {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-medium));
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .link-info {
+            flex-grow: 1;
+        }
+
+        .link-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+            color: var(--accent-glow);
+        }
+
+        .link-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .link-arrow {
+            margin-left: 10px;
+            font-weight: bold;
+            color: var(--accent);
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+
+        /* =========================================
+           6. UPLOAD SECTION (LINK BOX)
+           ========================================= */
+        .upload-grid {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            width: 100%;
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            text-decoration: none; 
+            color: inherit;
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Animated Dashed Border Effect */
+        @keyframes dashMove {
+            0% { background-position: 0 0, 0 100%, 0 0, 100% 0; }
+            100% { background-position: 40px 0, -40px 100%, 0 40px, 100% -40px; }
+        }
+
+        .upload-box:hover {
+            border-color: transparent;
+            background-image: linear-gradient(90deg, var(--accent-glow) 50%, transparent 50%), linear-gradient(90deg, var(--accent-glow) 50%, transparent 50%), linear-gradient(0deg, var(--accent-glow) 50%, transparent 50%), linear-gradient(0deg, var(--accent-glow) 50%, transparent 50%);
+            background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+            background-size: 20px 2px, 20px 2px, 2px 20px, 2px 20px;
+            background-position: 0 0, 0 100%, 0 0, 100% 0;
+            animation: dashMove 0.5s linear infinite;
+            background-color: rgba(0, 212, 255, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .upload-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
+            fill: var(--text-secondary);
+            transition: 0.3s;
+        }
+
+        .upload-box:hover .upload-icon {
+            fill: var(--accent-glow);
+            transform: rotate(-10deg) scale(1.2);
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        /* =========================================
+           RESPONSIVE
+           ========================================= */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .identity-card { grid-template-columns: 1fr; text-align: center; }
+            .info-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+            .content-box { grid-template-columns: 1fr; }
+            .link-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NETWORK PARTICLE CANVAS -->
+    <canvas id="network-canvas"></canvas>
+
+    <div class="container">
+        <!-- 1. HERO SECTION -->
+        <header class="hero">
+            <h1>Jaringan Komputer</h1>
+            <p>Website Tugas – Fakultas Ilmu Terapan</p>
+        </header>
+
+        <!-- 2. IDENTITAS -->
+        <section class="identity-card glass-card reveal floating-anim delay-1 tilt-card">
+            <div class="profile-wrapper">
+                <!-- Placeholder Image -->
+                <img src="media/dappu hima LM.jpeg" alt="Foto Dava" class="profile-img">
+            </div>
+            <div class="identity-info">
+                <h2>Dava Aryadhinata</h2>
+                <div class="info-grid">
+                    <span class="label">NIM</span>
+                    <span>607012500035</span>
+                    
+                    <span class="label">Kelas</span>
+                    <span>D3SI-4904</span>
+                    
+                    <span class="label">Fakultas</span>
+                    <span>Ilmu Terapan</span>
+                    
+                    <span class="label">Status</span>
+                    <span style="color: #00ff88; text-shadow: 0 0 10px #00ff88;">• Active Student</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. MATA KULIAH -->
+        <section class="course-card glass-card reveal floating-anim delay-2 tilt-card">
+            <svg class="icon course-icon" viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" fill="currentColor"/>
+            </svg>
+            <h3>Mata Kuliah</h3>
+            <h2 class="section-title" style="font-size: 1.8rem; margin: 0;">Jaringan Komputer</h2>
+        </section>
+
+        <!-- 4. PEMBAHASAN SERVER -->
+        <section class="glass-card reveal floating-anim delay-3">
+            <h2 class="section-title">Pembahasan: Server</h2>
+            <div class="content-box">
+                <div class="server-visual">
+                    <img src="media/server.jpg" alt="Server Room Illustration">
+                </div>
+                <div class="server-details">
+                    <h3>Apa itu Server?</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Sistem komputer yang menyediakan sumber daya untuk penyimpanan data dan layanan tertentu dalam sebuah jaringan komputer. Server bertindak sebagai pusat yang melayani permintaan dari komputer client.
+                    </p>
+
+                    <h4 style="margin-top: 1.5rem; color: var(--accent);">Fungsi Utama</h4>
+                    <ul>
+                        <li>Menyediakan layanan & resource bagi client.</li>
+                        <li>Menyimpan dan mengamankan data terpusat.</li>
+                        <li>Mengatur lalu lintas dan hak akses jaringan.</li>
+                    </ul>
+
+                    <h4 style="margin-top: 1.5rem; color: var(--accent);">Jenis Server</h4>
+                    <div class="tag-container">
+                        <div class="tag">File Server</div>
+                        <div class="tag">Web Server</div>
+                        <div class="tag">Database Server</div>
+                        <div class="tag">App Server</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. SUMBER REFERENSI -->
+        <section class="glass-card reveal floating-anim delay-1">
+            <h2 class="section-title">Sumber Referensi Terkait</h2>
+            <div class="link-grid">
+                
+                <a href="https://www.dicoding.com/blog/apa-itu-server/" target="_blank" class="link-card">
+                    <div class="link-icon-box">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.79 4.21,10.21L9,15V16A2,2 0 0,0 11,18V19.93M17.9,17.39C17.64,16.8 16.9,16.5 16.5,17C15.46,18.3 13.82,19.05 12,19.05V18A4,4 0 0,0 16,14V13H18.5A1.5,1.5 0 0,0 20,11.5V11C20,10.15 19.65,9.35 19.1,8.77C19.68,9.78 20,10.87 20,12C20,14.12 19.16,16.05 17.9,17.39M19,7.5C19,7.5 19,7.5 18.97,7.5C18.94,7.47 18.91,7.44 18.88,7.41C18.25,6.77 17.5,6.26 16.66,5.91C16.89,6.38 17,6.91 17,7.5A2.5,2.5 0 0,1 14.5,10H13V6A2,2 0 0,1 15,4V3.06C18.35,3.69 20.93,6.3 21.61,9.65C21.05,8.77 20.15,8 19,7.5Z" fill="#ffffff"/></svg>
+                    </div>
+                    <div class="link-info">
+                        <h3>Apa itu Server</h3>
+                        <p>Penjelasan teknis tentang fungsi server dan hardware.</p>
+                    </div>
+                    <div class="link-arrow">→</div>
+                </a>
+
+                <a href="https://en.wikipedia.org/wiki/Server_(computing)" target="_blank" class="link-card">
+                    <div class="link-icon-box">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2M16.2 16.2L11 13V7H12.5V12.2L17 14.9L16.2 16.2Z" fill="#ffffff"/></svg>
+                    </div>
+                    <div class="link-info">
+                        <h3>Wikipedia: Server</h3>
+                        <p>Definisi lengkap dan sejarah perkembangan server.</p>
+                    </div>
+                    <div class="link-arrow">→</div>
+                </a>
+
+                <a href="https://www.youtube.com/results?search_query=cara+kerja+server+jaringan" target="_blank" class="link-card">
+                    <div class="link-icon-box">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M10,15L15.19,12L10,9V15M21.56,7.17C21.69,7.64 21.78,8.27 21.84,9.07C21.91,9.87 21.94,10.56 21.94,11.16L22,12C22,14.19 21.84,15.8 21.56,16.83C21.31,17.73 20.73,18.31 19.83,18.56C19.36,18.69 18.5,18.78 17.18,18.84C15.88,18.91 14.69,18.94 13.59,18.94L12,19C7.81,19 5.2,18.84 4.17,18.56C3.27,18.31 2.69,17.73 2.44,16.83C2.31,16.36 2.22,15.73 2.16,14.93C2.09,14.13 2.06,13.44 2.06,12.84L2,12C2,9.81 2.16,8.2 2.44,7.17C2.69,6.27 3.27,5.69 4.17,5.44C4.64,5.31 5.5,5.22 6.82,5.16C8.12,5.09 9.31,5.06 10.41,5.06L12,5C16.19,5 18.8,5.16 19.83,5.44C20.73,5.69 21.31,6.27 21.56,7.17Z" fill="#ffffff"/></svg>
+                    </div>
+                    <div class="link-info">
+                        <h3>Video Tutorial Server</h3>
+                        <p>Kumpulan video penjelasan server di YouTube.</p>
+                    </div>
+                    <div class="link-arrow">→</div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- 6. LAMPIRAN FILE TUTORIAL -->
+        <section class="glass-card reveal floating-anim delay-2 tilt-card">
+            <h2 class="section-title">Lampiran File Tutorial</h2>
+            <div class="upload-grid">
+                
+                <!-- Box Link -->
+                <!-- GANTI HREF DI BAWAH INI DENGAN LINK GOOGLE DRIVE ANDA -->
+                <a href="https://drive.google.com/open?id=MASUKKAN_ID_FILE_DISINI" target="_blank" class="upload-box">
+                    <svg class="upload-icon" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M11.13,11.13L12.89,12.89L10.76,15.02L12.89,17.15L11.13,18.91L9,16.78L6.87,18.91L5.11,17.15L7.24,15.02L5.11,12.89L6.87,11.13L9,13.26L11.13,11.13Z"/>
+                    </svg>
+                    <h3>File Tutorial Hosting</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 5px;">Klik untuk Membuka PDF</p>
+                </a>
+
+            </div>
+        </section>
+
+        <footer style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.4); font-size: 0.9rem;">
+            &copy; 2025 Dava Aryadhinata. Tugas Jaringan Komputer.
+        </footer>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. Scroll Animation Logic (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealOnScroll = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+        revealElements.forEach(el => revealOnScroll.observe(el));
+
+        // 2. Network Particle Animation (Canvas)
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        
+        // Configuration
+        const particleCount = 80; // Number of dots
+        const connectionDistance = 150; // Max distance to draw line
+        const mouseDistance = 200; // Mouse interaction radius
+
+        // Mouse tracking
+        let mouse = { x: null, y: null };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Resize handling
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particle Class
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 1.5; // Velocity X
+                this.vy = (Math.random() - 0.5) * 1.5; // Velocity Y
+                this.size = Math.random() * 2 + 1;
+                this.color = '#9b5de5'; // Accent color
+            }
+
+            update() {
+                // Move
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                // Mouse interaction (Repel slightly)
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < mouseDistance) {
+                        const forceDirectionX = dx / distance;
+                        const forceDirectionY = dy / distance;
+                        const force = (mouseDistance - distance) / mouseDistance;
+                        const directionX = forceDirectionX * force * 3;
+                        const directionY = forceDirectionY * force * 3;
+                        this.x -= directionX;
+                        this.y -= directionY;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        // Animation Loop
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                // Draw connections
+                for (let j = i; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distance < connectionDistance) {
+                        ctx.beginPath();
+                        // Opacity depends on distance
+                        let opacity = 1 - (distance / connectionDistance);
+                        ctx.strokeStyle = `rgba(155, 93, 229, ${opacity * 0.5})`; 
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // 3. 3D Tilt Effect on Cards
+        const tiltCards = document.querySelectorAll('.tilt-card');
+        
+        tiltCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Calculate rotation (center is 0)
+                const xPct = (x / rect.width) - 0.5;
+                const yPct = (y / rect.height) - 0.5;
+                
+                // Rotate slightly (max 10deg)
+                const xRot = yPct * -10; 
+                const yRot = xPct * 10;
+                
+                card.style.transform = `perspective(1000px) rotateX(${xRot}deg) rotateY(${yRot}deg) scale(1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+
+    </script>
+</body>
+</html>
